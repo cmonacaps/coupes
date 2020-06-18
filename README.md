@@ -47,7 +47,7 @@ And so on. The content of the cards is not important.
 
 These cards could be arranged into sequences, for example, on a gaming table:
 
-```JSON
+```
 {
   "current": c76,
   "house": [ c76, c42, c16, c75, c12 ],
@@ -68,7 +68,7 @@ indicates under what conditions what `tricks`, if any, might occur.
 
 For example, letting `basicCard` refer to any of the card examples
 presented above, we might write the card in JSON as
-```JSON
+```
 {
    ...basicCard,
    plan
@@ -77,7 +77,7 @@ presented above, we might write the card in JSON as
 where the `plan` may be undefined. For example, the `plan` associated
 with card `c42` in the `house` sequence might be that the `house` will
 `trick` `plum` if the current card has the same suit as the previous:
-```JSON
+```
 {
   ...c42Content,
   "plan": {
@@ -97,7 +97,7 @@ with card `c42` in the `house` sequence might be that the `house` will
 
 If the stated condition were true, following this card the table would be:
 
-```JSON
+```
 {
   "current": c65,
   "house": [ c76, c42, [ c65, c89, c55 ], c16, c75, c12 ],
@@ -167,7 +167,7 @@ conditions.
 For example, if the `condition` passes, the `house` tricks `plum`,
 and the `house` tricks `mustard` otherwise:
 
-```JSON
+```
 {
   ...c42Content,
   "plan": {
