@@ -2,6 +2,8 @@
 
 ## some automatic cuts
 
+![222](https://user-images.githubusercontent.com/50930812/85078933-95d08100-b193-11ea-91dd-d2624a893775.png)
+
 Suppose you're describing some cards in JSON.
 
 These could be standard playing cards, for example:
