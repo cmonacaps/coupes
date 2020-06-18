@@ -1,68 +1,184 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# coupes
 
-## Available Scripts
+## some automatic cuts
 
-In the project directory, you can run:
+Suppose you're describing some cards in JSON.
 
-### `npm start`
+These could be standard playing cards, for example:
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```JSON
+{
+  "rank": "J",
+  "suit": "♣︎︎"
+}
+```
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+Tarot:
 
-### `npm test`
+```JSON
+[
+    {
+      "arcanaMajor": "The Hermit"
+    },
+    {
+      "arcanaMinor": { "rank": "Page", "suit": "Batons" }
+    }
+]
+```
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Recipes, as if they were held in a set of index cards:
 
-### `npm run build`
+```JSON
+{
+  "name": "Pemmican",
+  "ingredients": [ "game meat", "chokeberry", "tallow" ],
+  "instructions": [
+    "cut the game meat into small pieces",
+    "dry the game meat and chokeberry completely and pulverize",
+    "mix the powdered game meat and chokeberry into the tallow",
+    "press the resulting putty into a container and store at room temperature 1 to 5 years"
+  ]
+}
+```
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+And so on. The content of the cards is not important.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+These cards could be arranged into sequences, for example, on a gaming table:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```JSON
+{
+  "current": c76,
+  "house": [ c76, c42, c16, c75, c12 ],
+  "players": {
+    "mustard": [ c90, c16, c99 ],
+    "plum": [ c65, c89, c55 ]
+  } 
+}
+```
 
-### `npm run eject`
+In this game, the `house` may `trick` a player, which means
+that the `house` takes the player's cards into their own
+sequence.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+The game proceeds by sequential consideration of the `house`'s cards,
+and some of the cards themselves might be associated with a `plan`, that
+indicates under what conditions what `tricks`, if any, might occur.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+For example, letting `basicCard` refer to any of the card examples
+presented above, we might write the card in JSON as
+```JSON
+{
+   ...basicCard,
+   plan
+}
+```
+where the `plan` may be undefined. For example, the `plan` associated
+with card `c42` in the `house` sequence might be that the `house` will
+`trick` `plum` if the current card has the same suit as the previous:
+```JSON
+{
+  ...c42Content,
+  "plan": {
+    "kind": "trick",
+    "party": "house",
+    "counterparty": "plum",
+    "condition": {
+      "kind": "equal",
+      "parameters": [
+        { "kind": "suit", "value": "this" },
+        { "kind": "suit", "value": "previous" } ]
+      }
+    }
+  }
+}
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+If the stated condition were true, following this card the table would be:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```JSON
+{
+  "current": c65,
+  "house": [ c76, c42, [ c65, c89, c55 ], c16, c75, c12 ],
+  "players": {
+    "mustard": [ c90, c16, c99 ],
+    "plum": [ c65, c89, c55 ]
+  } 
+}
+```
 
-## Learn More
+If the table were described as such following a `trick`, some game mechanics
+might be more readily implemented by first flattening the `house` sequence:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```js
+  const nextCard = 
+    (sequence =>
+      sequence[ R.inc( R.indexOf(c65, sequence) ) ]
+    )(R.flatten(table.house));
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Backward play
 
-### Code Splitting
+A player may reverse the order of sequential consideration of cards.
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+In the case that a `trick` was made when playing forward, that `trick`
+must be undone when playing backward. For that reason, it might be best
+to avoid flattening the `house` sequence in the `table` representation.
 
-### Analyzing the Bundle Size
+```js
+  const previousCard = card =>
+    (sequence =>
+      sequence[ R.dec( R.indexOf(thisCard, sequence) ) ]
+    )(R.flatten(table.house)
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+  const beginsATrick = card =>
+    R.includes(
+      card,
+      R.map(
+        R.head,
+        R.filter(
+          R.pipe(R.type, R.equals('Array')),
+          table.house
+        )
+      )
+    )
 
-### Making a Progressive Web App
+  const removeNext =
+    R.compose(
+      R.remove,
+      R.inc,
+      R.flip(R.indexOf)(table.house)
+    )
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+  const previousCardAndUntrick =
+    R.when(
+      beginsATrick,
+      removeNext,
+      previousCard
+    )
+```
 
-### Advanced Configuration
+## Alternate tricks
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+A `plan` could describe a `trick` of different parties under different
+conditions.
 
-### Deployment
+For example, if the `condition` passes, the `house` tricks `plum`,
+and the `house` tricks `mustard` otherwise:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+```JSON
+{
+  ...c42Content,
+  "plan": {
+    "kind": "counterpartySelectTrick",
+    "party": "house",
+    "counterparty": [ "plum", "mustard" ],
+    "condition": {
+      "kind": "equal",
+      "parameters": [
+        { "kind": "suit", "value": "this" },
+        { "kind": "suit", "value": "previous" } ]
+      }
+    }
+  }
+}
+```

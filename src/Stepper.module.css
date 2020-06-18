@@ -1,0 +1,16 @@
+.stepper {
+  display: flex;
+  flex-display: row;
+  justify-content: space-evenly;
+  padding: 10px;
+  background-color: aquamarine;
+}
+
+.step {
+  margin-left: 10px;
+}
+
+.current {
+  font-weight: bold;
+  color: orangered;
+}

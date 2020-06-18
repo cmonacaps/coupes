@@ -1,0 +1,48 @@
+.card {
+  margin: 30px;
+  border: 1px solid lightgray;
+  text-align: center;
+  max-width: 500px;
+}
+
+.title {
+  padding: 20px;
+  background-color: lightcyan;
+  border-bottom: 1px solid lightgray;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  background-color: linen;
+  border-bottom: 1px solid lightgray;
+}
+
+.inputContainer {
+  text-align: left;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+}
+
+.inputLabel {
+}
+
+.input {
+  margin-left: 15px;
+}
+
+.logicDescription {
+  color: gray;
+  font-size: 80%;
+  font-style: oblique;
+  text-align: left;
+  padding-left: 15px;
+}
+
+.nav {
+  display: flex;
+  flex-display: row;
+  justify-content: flex-end;
+  padding: 15px;
+}
